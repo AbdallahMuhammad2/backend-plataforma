@@ -9,14 +9,15 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { errorHandler } = require('./middleware/errorHandler');
 
-// Import routes
-const authRoutes = require('./routes/auth');  // Verifique se o caminho está correto
-app.use('/api/auth', authRoutes);const userRoutes = require('./routes/users');
-const courseRoutes = require('./routes/courses');
-const submissionRoutes = require('./routes/submissions');
-
+// Create an instance of express
 const app = express();
 
+// Import routes
+const authRoutes = require('./routes/auth');  // Verifique se o caminho está correto
+const userRoutes = require('./routes/users');
+const courseRoutes = require('./routes/courses');
+const submissionRoutes = require('./routes/submissions');
+W
 // Middleware
 app.use(cors());
 app.use(express.json());
