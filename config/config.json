@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "root",
+    "password": "root",
+    "database": "plataforma_video_dev",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+
+  "test": {
+    "username": "root",
+    "password": "root",
+    "database": "plataforma_video_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+
+  "production": {
+    "username": "cursoredac_add1",
+    "password": "kUz6Zq24yc@TnUz",
+    "database": "cursoredacaopr",
+    "host": "mysql.cursoredacaoprofecris.kinghost.net",
+    "dialect": "mysql"
+  }
+}
