@@ -17,7 +17,7 @@ const authRoutes = require('./routes/auth');  // Verifique se o caminho está co
 const userRoutes = require('./routes/users');
 const courseRoutes = require('./routes/courses');
 const submissionRoutes = require('./routes/submissions');
-W
+
 // Middleware
 app.use(cors());
 app.use(express.json());
