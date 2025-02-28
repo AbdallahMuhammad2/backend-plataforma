@@ -81,7 +81,7 @@ router.post('/register', validateRegisterInput, asyncHandler(async (req, res) =>
     }
     throw error;
   }
-}));
+})); // Corresponde a /api/auth/register
 
 router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -108,6 +108,6 @@ router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
     }
     throw error;
   }
-}));
+}));    // Corresponde a /api/auth/login
 
 module.exports = router;
