@@ -10,8 +10,8 @@ const morgan = require('morgan');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
+const authRoutes = require('./routes/auth');  // Verifique se o caminho está correto
+app.use('/api/auth', authRoutes);const userRoutes = require('./routes/users');
 const courseRoutes = require('./routes/courses');
 const submissionRoutes = require('./routes/submissions');
 
