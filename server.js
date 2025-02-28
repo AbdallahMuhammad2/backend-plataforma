@@ -26,16 +26,33 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Welcome to the API!',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      courses: '/api/courses',
+      submissions: '/api/submissions'
+    }
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // API Routes
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/submissions', submissionRoutes);
+
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Error handling
 app.use((req, res, next) => {
@@ -43,6 +60,7 @@ app.use((req, res, next) => {
   error.status = 404;
   next(error);
 });
+
 
 app.use(errorHandler);
 
