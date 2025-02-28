@@ -2,12 +2,8 @@ require('dotenv').config({ path: `.env.production` });
 
 console.log('Current Working Directory:', process.cwd());
 console.log('Loading environment variables from: .env.production');
-console.log('Database User:', 'cursoredac_add1');
-console.log('Database Name:', 'cursoredacaopr');
-console.log('Database Password:', 'kUz6Zq24yc@TnUz');
-console.log('Database Host:', 'mysql.cursoredacaoprofecris.kinghost.net');
-console.log('Database Port:', 3306);
 
+// Import dependencies
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -45,7 +41,6 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
@@ -60,25 +55,22 @@ app.use((req, res, next) => {
   error.status = 404;
   next(error);
 });
-
-
 app.use(errorHandler);
 
-// Database connection check
+// Database connection setup
 const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize('cursoredacaopr', 'cursoredac_add1', 'kUz6Zq24yc@TnUz', {
-  host: 'mysql.cursoredacaoprofecris.kinghost.net',
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: 'mysql',
-  port: 3306,
+  port: process.env.DB_PORT,
 });
 
-// Log database configuration for debugging
-console.log('Database User:', 'cursoredac_add1');
-console.log('Database Name:', 'cursoredacaopr');
-console.log('Database Password:', 'kUz6Zq24yc@TnUz');
-console.log('Database Host:', 'mysql.cursoredacaoprofecris.kinghost.net');
-console.log('Database Port:', 3306);
+// Log database configuration for debugging (be careful with sensitive data)
+console.log('Database User:', process.env.DB_USER);
+console.log('Database Host:', process.env.DB_HOST);
+console.log('Database Port:', process.env.DB_PORT);
 
+// Test database connection
 sequelize.authenticate()
   .then(() => {
     console.log('Database connection successful');
