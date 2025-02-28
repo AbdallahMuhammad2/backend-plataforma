@@ -8,8 +8,6 @@ console.log('Database Password:', 'kUz6Zq24yc@TnUz');
 console.log('Database Host:', 'mysql.cursoredacaoprofecris.kinghost.net');
 console.log('Database Port:', 3306);
 
-const fs = require('fs');
-const https = require('https');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -22,26 +20,6 @@ const courseRoutes = require('./routes/courses');
 const submissionRoutes = require('./routes/submissions');
 
 const app = express();
-
-// Configurações do certificado
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/professorrodrigodutra.shop/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/professorrodrigodutra.shop/cert.pem'),
-  ca: fs.readFileSync('/etc/letsencrypt/live/professorrodrigodutra.shop/chain.pem')
-};
-
-// Configurações do servidor HTTPS
-https.createServer(options, app).listen(443, () => {
-  console.log('Servidor HTTPS rodando na porta 443');
-});
-
-// Redirecionamento HTTP para HTTPS
-http.createServer((req, res) => {
-  res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
-  res.end();
-}).listen(80, () => {
-  console.log('Servidor HTTP rodando na porta 80');
-});
 
 // Middleware
 app.use(cors());
@@ -92,12 +70,12 @@ sequelize.authenticate()
     process.exit(1);
   });
 
-// Create HTTPS server
+// Start server
 const PORT = process.env.PORT || 3001;
-https.createServer(options, app).listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`
-    🚀 HTTPS Server is running on port ${PORT}
-
+    🚀 Server is running on port ${PORT}
+    
     Available endpoints:
     - Auth:
       POST /api/auth/register
