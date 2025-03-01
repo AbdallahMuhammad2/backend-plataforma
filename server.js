@@ -14,6 +14,7 @@ const app = express();
 
 // Import routes
 const authRoutes = require('./routes/auth');  // Verifique se o caminho está correto
+app.use('/api/auth', authRoutes); // Isso irá fazer com que a rota seja acessada por /api/auth/login
 const userRoutes = require('./routes/users');
 const courseRoutes = require('./routes/courses');
 const submissionRoutes = require('./routes/submissions');
