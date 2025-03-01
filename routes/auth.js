@@ -85,24 +85,19 @@ router.post('/register', validateRegisterInput, asyncHandler(async (req, res) =>
 
 router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  
+
   try {
     const result = await UserController.login(email, password);
     res.status(200).json({
       status: 'success',
       data: {
         token: result.token,
-        user: {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-          avatar_url: result.user.avatarUrl,
-          bio: result.user.bio
-        }
+        user: result.user
       },
       message: 'Login realizado com sucesso'
     });
   } catch (error) {
+    console.error('Error during login:', error);  // Log detalhado do erro
     if (error.message === 'Invalid email or password') {
       throw new AppError('Email ou senha inválidos', 401);
     }

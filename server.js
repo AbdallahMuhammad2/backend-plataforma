@@ -11,17 +11,15 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 // Create an instance of express
 const app = express();
-
-// Import routes
+// Importar rotas
 const authRoutes = require('./routes/auth');  // Verifique se o caminho está correto
-app.use('/api/auth', authRoutes); // Isso irá fazer com que a rota seja acessada por /api/auth/login
 const userRoutes = require('./routes/users');
 const courseRoutes = require('./routes/courses');
 const submissionRoutes = require('./routes/submissions');
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Removido body-parser, usando apenas express.json()
+app.use(express.json());
 app.use(morgan('dev'));
 
 // Root endpoint
@@ -42,7 +40,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
+// Definir as rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
