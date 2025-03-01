@@ -50,13 +50,16 @@ app.use('/api/submissions', submissionRoutes);
 // Handle favicon requests
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Error handling
 app.use((req, res, next) => {
   const error = new Error('Not Found');
   error.status = 404;
   next(error);
 });
-app.use(errorHandler);
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err);  // Log detalhado do erro
+  res.status(err.status || 500).json({ message: err.message });
+});
 
 // Database connection setup
 const { Sequelize } = require('sequelize');
