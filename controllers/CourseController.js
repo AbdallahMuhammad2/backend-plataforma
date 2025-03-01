@@ -3,6 +3,34 @@ const { Course, User, Lesson, UserProgress } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 
 class CourseController extends BaseController {
+  async markLessonComplete(lessonId, userId) {
+    try {
+      if (!lessonId || !userId) {
+        throw new AppError('Lesson ID and User ID are required', 400);
+      }
+
+      // Logic to mark the lesson as complete
+      const userProgress = await UserProgress.findOne({
+        where: {
+          userId,
+          lesson_id: lessonId
+        }
+      });
+
+      if (!userProgress) {
+        throw new AppError('User progress not found for this lesson', 404);
+      }
+
+      userProgress.completed = true;
+      await userProgress.save();
+
+      return { message: 'Lesson marked as complete' };
+    } catch (error) {
+      console.error('Error marking lesson complete:', error);
+      throw new AppError('Error marking lesson as complete', 500);
+    }
+  }
+
   constructor() {
     super('courses');
   }
