@@ -9,13 +9,15 @@ class CourseController extends BaseController {
         throw new AppError('Lesson ID and User ID are required', 400);
       }
 
-      // Logic to mark the lesson as complete
+      console.log(`Marking lesson ID: ${lessonId} as complete for user ID: ${userId}`); // Added logging
       const userProgress = await UserProgress.findOne({
         where: {
           userId,
           lesson_id: lessonId
         }
       });
+
+      console.log(`User progress found: ${JSON.stringify(userProgress)}`); // Added logging
 
       if (!userProgress) {
         throw new AppError('User progress not found for this lesson', 404);
@@ -43,7 +45,6 @@ class CourseController extends BaseController {
       
       const course = await Course.findByPk(courseId, {
         logging: console.log,
-
         attributes: [
           'id', 'title', 'description', 'thumbnail_url',
           'level', 'category', 'total_hours'
@@ -85,13 +86,11 @@ class CourseController extends BaseController {
         where: {
           userId,
           lesson_id: courseId, // Change this line
-
           completed: false
         },
         order: [['updated_at', 'DESC']],
         limit: 1
       });
-
 
       const courseJson = course.toJSON();
       const modules = []; // Initialize modules array
@@ -131,7 +130,6 @@ class CourseController extends BaseController {
       console.error('Error fetching course ID:', courseId, error.message);
       console.log(`Error details: ${error.message}`);
       throw new AppError('Erro ao carregar os detalhes do curso. Por favor, verifique sua conexão e tente novamente.', 500);
-
     }
   }
 
@@ -186,7 +184,6 @@ class CourseController extends BaseController {
       throw new AppError('Error fetching courses', 500);
     }
   }
-
 }
 
 module.exports = new CourseController();
