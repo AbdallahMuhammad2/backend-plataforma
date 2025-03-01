@@ -20,7 +20,7 @@ const submissionRoutes = require('./routes/submissions');
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Removido body-parser, usando apenas express.json()
 app.use(morgan('dev'));
 
 // Root endpoint
