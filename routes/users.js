@@ -18,10 +18,7 @@ router.patch('/me', authMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // Get user stats
-router.get('/stats', authMiddleware, asyncHandler(async (req, res) => {
-  const stats = await UserController.getUserStats(req.user.id);
-  res.json(stats);
-}));
+router.get('/stats', asyncHandler(UserController.getUserStats));
 
 // Get all user achievements
 router.get('/achievements', authMiddleware, asyncHandler(async (req, res) => {
@@ -30,10 +27,6 @@ router.get('/achievements', authMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // Get recent achievements
-router.get('/achievements/recent', authMiddleware, asyncHandler(async (req, res) => {
-  const limit = parseInt(req.query.limit) || 3;
-  const achievements = await UserController.getRecentAchievements(req.user.id, limit);
-  res.json(achievements);
-}));
+router.get('/achievements/recent', asyncHandler(UserController.getRecentAchievements));
 
 module.exports = router;

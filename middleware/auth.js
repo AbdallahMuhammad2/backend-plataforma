@@ -2,7 +2,9 @@ const UserController = require('../controllers/UserController');
 
 function authMiddleware(req, res, next) {
   try {
-    console.log('Auth middleware: Checking for token...');
+    console.log('Auth middleware: Checking for token...'); // Log token check
+    console.log('Auth middleware: Verifying token...'); // Log token verification
+
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
@@ -13,7 +15,8 @@ function authMiddleware(req, res, next) {
     console.log('Auth middleware: Verifying token...');
     const decoded = UserController.verifyToken(token);
     console.log (token);
-    console.log('Auth middleware: Token verified. Adding user data to request...');
+    console.log('Auth middleware: Token verified. Adding user data to request...', decoded); // Log user data addition
+
     req.user = decoded;
     next();
   } catch (error) {

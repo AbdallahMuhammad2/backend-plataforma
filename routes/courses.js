@@ -1,12 +1,46 @@
 const express = require('express'); 
 const router = express.Router(); // Removed duplicate router initialization
 
+router.post('/test-token', async (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+  
+  try {
+    const decoded = UserController.verifyToken(token);
+    console.log('Decoded token:', decoded);
+    return res.status(200).json({ message: 'Token is valid', user: decoded });
+  } catch (error) {
+    return res.status(401).json({ message: error.message });
+  }
+}); // Added missing closing brace for the test route
+
+
+
 const CourseController = require('../controllers/CourseController');
 const { authMiddleware } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 console.log('Courses route initialized'); // Logging for route initialization
+router.get('/recent', authMiddleware, asyncHandler(async (req, res) => { 
+  console.log(`Request to get recent courses by user ID: ${req.user.id}`); // Logging for request
+
+  const recentCourses = await CourseController.getRecentCourses(req.user.id); 
+  console.log(`Fetched recent courses: ${JSON.stringify(recentCourses)}`); // Logging for fetched recent courses
+
+  res.json(recentCourses);
+}));
+
+// Rota para buscar cursos recentes
+router.get('/recents', asyncHandler(async (req, res) => {
+  const userId = req.user.id; // Supondo que o ID do usuário esteja disponível no req.user
+  const recentCourses = await CourseController.getRecentCourses(userId);
+  res.json(recentCourses);
+}));
+
 // Get all courses with progress
+
 
 router.get('/', authMiddleware, asyncHandler(async (req, res) => { 
   console.log(`Request to get all courses by user ID: ${req.user.id}`); // Logging for request

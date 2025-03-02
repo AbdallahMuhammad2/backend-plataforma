@@ -154,55 +154,25 @@ class UserController extends BaseController {
     }
   }
 
-  async getUserStats(userId) {
+  async getUserStats(req, res) {
     try {
-      const user = await User.findByPk(userId, {
-        include: [
-          {
-            model: Achievement,
-            as: 'achievements',
-            through: { model: UserAchievement, attributes: [] }
-          }
-        ]
-      });
-
-      if (!user) {
-        throw new AppError('Usuário não encontrado', 404);
-      }
-
-      return {
-        total_courses: 0, // Implement course counting
-        completed_courses: 0,
-        total_lessons: 0,
-        completed_lessons: 0,
-        study_streak: 0,
-        total_achievements: user.achievements.length,
-        unlocked_achievements: user.achievements.filter(a => a.unlocked_at).length
-      };
+      const userId = req.user.id;
+      // Lógica para obter as estatísticas do usuário
+      const stats = await User.getStats(userId);
+      res.json(stats);
     } catch (error) {
-      if (error instanceof AppError) throw error;
       console.error('Error fetching user stats:', error);
-      throw new AppError('Erro ao buscar estatísticas do usuário', 500);
+      throw new AppError('Error fetching user stats', 500);
     }
   }
 
-  async getRecentAchievements(userId, limit) {
+  async getRecentAchievements(req, res) {
     try {
-      const achievements = await UserAchievement.findAll({
-        where: { userId },
-        include: [{
-          model: Achievement,
-          as: 'achievement',
-          attributes: ['title', 'description', 'criteria', 'points']
-        }],
-        order: [['unlockedAt', 'DESC']],
-        limit
-      });
-
-      return achievements.map(ua => ({
-        ...ua.achievement.toJSON(),
-        unlockedAt: ua.unlockedAt
-      }));
+      const userId = req.user.id;
+      const limit = parseInt(req.query.limit, 10) || 3;
+      // Lógica para obter as conquistas recentes do usuário
+      const achievements = await Achievement.getRecent(userId, limit);
+      res.json(achievements);
     } catch (error) {
       console.error('Error fetching recent achievements:', error);
       throw new AppError('Error fetching recent achievements', 500);

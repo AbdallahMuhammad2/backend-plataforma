@@ -3,6 +3,31 @@ const { Course, User, Lesson, UserProgress } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 
 class CourseController extends BaseController {
+  constructor() {
+    super('courses');
+  }
+
+  async getRecentCourses(userId) {
+    try {
+      const recentCourses = await UserProgress.findAll({
+        where: {
+          user_id: userId
+        },
+        order: [['updated_at', 'DESC']],
+        limit: 5,
+        include: [{
+          model: Course,
+          attributes: ['id', 'title', 'description', 'thumbnail_url', 'level', 'category', 'total_hours']
+        }]
+      });
+
+      return recentCourses.map(progress => progress.Course);
+    } catch (error) {
+      console.error('Error fetching recent courses:', error);
+      throw new AppError('Error fetching recent courses', 500);
+    }
+  }
+
   async markLessonComplete(lessonId, userId) {
     try {
       if (!lessonId || !userId) {
@@ -10,31 +35,42 @@ class CourseController extends BaseController {
       }
 
       console.log(`Marking lesson ID: ${lessonId} as complete for user ID: ${userId}`); // Added logging
-      const userProgress = await UserProgress.findOne({
+
+      let userProgress = await UserProgress.findOne({
         where: {
-          userId,
-          lesson_id: lessonId
+          user_id: userId,
+          lesson_id: lessonId,
         }
       });
 
-      console.log(`User progress found: ${JSON.stringify(userProgress)}`); // Added logging
+      console.log(`User progress found: ${userProgress ? JSON.stringify(userProgress) : 'none'}`); // Improved logging
 
       if (!userProgress) {
-        throw new AppError('User progress not found for this lesson', 404);
+        // Create a new user progress entry if it does not exist
+        userProgress = await UserProgress.create({
+          userId: userId,
+          user_id: userId, // Ensure user_id is set
+          lesson_id: lessonId,
+          completed: true,
+          completed_at: new Date(),
+          created_at: new Date(),
+          updated_at: new Date()
+        });
+        console.log(`Created new user progress: ${JSON.stringify(userProgress)}`);
+      } else {
+        userProgress.completed = true; // Mark as complete
+        userProgress.completed_at = new Date(); // Update the timestamp
+        userProgress.updated_at = new Date(); // Update the timestamp
+        await userProgress.save();
+        console.log(`Updated user progress: ${JSON.stringify(userProgress)}`);
       }
-
-      userProgress.completed = true;
-      await userProgress.save();
 
       return { message: 'Lesson marked as complete' };
     } catch (error) {
-      console.error('Error marking lesson complete:', error);
+      console.error('Error marking lesson complete:', error.message); // Log only the error message
+      console.error(`Input parameters: lessonId = ${lessonId}, userId = ${userId}`); // Log input parameters
       throw new AppError('Error marking lesson as complete', 500);
     }
-  }
-
-  constructor() {
-    super('courses');
   }
 
   async getCourse(courseId, userId) {
@@ -42,7 +78,9 @@ class CourseController extends BaseController {
       if (!courseId || !userId) {
         throw new AppError('Course ID and User ID are required', 400);
       }
-      
+
+      console.log(`Fetching course ID: ${courseId} for user ID: ${userId}`);
+
       const course = await Course.findByPk(courseId, {
         logging: console.log,
         attributes: [
@@ -53,17 +91,17 @@ class CourseController extends BaseController {
           {
             model: User,
             as: 'instructor',
-            attributes: ['id', 'name'] // Updated line
+            attributes: ['id', 'name']
           },
           {
             model: Lesson,
             as: 'lessons',
-            attributes: ['id', 'title', 'description', 'video_url', 'duration', 'order_index', 'module_id'], // Include module_id
+            attributes: ['id', 'title', 'description', 'video_url', 'duration', 'order_index', 'module_id'],
             include: [
               {
                 model: User,
                 as: 'completedBy',
-                attributes: [],
+                attributes: ['id'],
                 through: {
                   attributes: ['completed'],
                   where: { user_id: userId },
@@ -81,24 +119,13 @@ class CourseController extends BaseController {
         throw new AppError('Curso não encontrado. Por favor, verifique o ID do curso e tente novamente.', 404);
       }
 
-      // Get last watched lesson for "continue watching"
-      const lastWatched = await UserProgress.findOne({
-        where: {
-          userId,
-          lesson_id: courseId, // Change this line
-          completed: false
-        },
-        order: [['updated_at', 'DESC']],
-        limit: 1
-      });
-
       const courseJson = course.toJSON();
-      const modules = []; // Initialize modules array
-      const lessonMap = {}; // Temporary map to group lessons by module
+      const modules = [];
+      const lessonMap = {};
 
       // Group lessons into modules
       courseJson.lessons.forEach(lesson => {
-        const moduleId = lesson.module_id; // Assuming lessons have a module_id field
+        const moduleId = lesson.module_id;
         if (!lessonMap[moduleId]) {
           lessonMap[moduleId] = {
             id: moduleId,
@@ -113,17 +140,23 @@ class CourseController extends BaseController {
         modules.push(lessonMap[moduleId]);
       }
 
-      console.log(`Fetched course ID: ${courseJson.id}, Title: ${courseJson.title}`); // Updated logging for fetched course
-      console.log(courseJson); // Log the fetched course data
+      console.log(`Fetched course ID: ${courseJson.id}, Title: ${courseJson.title}`);
+      console.log(courseJson);
+
+      const totalLessons = courseJson.lessons.length;
+      const completedLessons = courseJson.lessons.filter(lesson => {
+        console.log(`Lesson ID: ${lesson.id}, CompletedBy: ${JSON.stringify(lesson.completedBy)}`);
+        return lesson.completedBy && lesson.completedBy.some(user => user.UserProgress && user.UserProgress.completed);
+      }).length;
+
+      console.log(`Course ID: ${courseJson.id} - Total lessons: ${totalLessons}, Completed lessons: ${completedLessons}`);
 
       return {
         ...courseJson,
-        modules, // Include the modules array in the response
+        modules,
         progress: {
-          total_lessons: courseJson.lessons.length,
-          completed_lessons: courseJson.lessons.filter(lesson =>
-            lesson.completedBy && lesson.completedBy.UserProgress?.completed
-          ).length
+          total_lessons: totalLessons,
+          completed_lessons: completedLessons
         }
       };
     } catch (error) {
@@ -135,6 +168,8 @@ class CourseController extends BaseController {
 
   async getAllCourses(userId) {
     try {
+      console.log(`Fetching all courses for user ID: ${userId}`);
+
       const courses = await Course.findAll({
         attributes: [
           'id', 'title', 'description', 'thumbnail_url',
@@ -144,12 +179,12 @@ class CourseController extends BaseController {
           {
             model: User,
             as: 'instructor',
-            attributes: ['id', 'name'] // Include instructor details
+            attributes: ['id', 'name']
           },
           {
             model: Lesson,
             as: 'lessons',
-            attributes: ['id'],
+            attributes: ['id', 'title', 'description', 'video_url', 'duration', 'order_index', 'module_id'],
             include: [
               {
                 model: User,
@@ -161,21 +196,32 @@ class CourseController extends BaseController {
                   required: false
                 }
               }
-            ]
+            ],
+            order: [['order_index', 'ASC']]
           }
         ],
         order: [['id', 'ASC']]
       });
 
+      console.log(`Fetched ${courses.length} courses`);
+
       return courses.map(course => {
         const courseJson = course.toJSON();
+        console.log(`Processing course ID: ${courseJson.id}, Title: ${courseJson.title}`);
+
+        const totalLessons = courseJson.lessons.length;
+        const completedLessons = courseJson.lessons.filter(lesson => {
+          console.log(`Lesson ID: ${lesson.id}, CompletedBy: ${JSON.stringify(lesson.completedBy)}`);
+          return lesson.completedBy && lesson.completedBy.some(user => user.UserProgress.completed);
+        }).length;
+
+        console.log(`Course ID: ${courseJson.id} - Total lessons: ${totalLessons}, Completed lessons: ${completedLessons}`);
+
         return {
           ...courseJson,
           progress: {
-            total_lessons: courseJson.lessons.length,
-            completed_lessons: courseJson.lessons.filter(lesson => 
-              lesson.completedBy && lesson.completedBy.UserProgress?.completed
-            ).length
+            total_lessons: totalLessons,
+            completed_lessons: completedLessons
           }
         };
       });

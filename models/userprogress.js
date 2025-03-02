@@ -32,14 +32,25 @@ module.exports = (sequelize, DataTypes) => {
     completed_at: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
     }
+
   }, {
     sequelize,
     modelName: 'UserProgress',
     tableName: 'user_progress',
     underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    timestamps: false
+
   });
 
   return UserProgress;
