@@ -12,8 +12,8 @@ class UserController extends BaseController {
 
   async register(userData) {
     try {
-      console.log('Registration attempt:', { ...userData, password: '[REDACTED]' });
-      
+      // console.log('Registration attempt:', { ...userData, password: '[REDACTED]' });
+
       // Check if email already exists
       const existingUser = await User.findOne({
         where: { email: userData.email }
@@ -56,15 +56,16 @@ class UserController extends BaseController {
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
-      console.error('Registration error:', error);
+      // console.error('Registration error:', error);
+
       throw new AppError('Erro ao registrar usuário. Por favor, tente novamente.', 500);
     }
   }
 
   async login(email, password) {
     try {
-      console.log('Login attempt:', { email, password: '[REDACTED]' });
-      
+      // console.log('Login attempt:', { email, password: '[REDACTED]' });
+
       // Find user by email
       const user = await User.findOne({
         where: { email },
@@ -72,19 +73,19 @@ class UserController extends BaseController {
       });
 
       if (!user) {
-        console.log('User not found');
+        // console.log('User not found');
         throw new AppError('Invalid email or password', 401);
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-      console.log('Password comparison result:', isValidPassword);
-      
+      // console.log('Password comparison result:', isValidPassword);
+
       if (!isValidPassword) {
         throw new AppError('Invalid email or password', 401);
       }
 
-      console.log('Login successful for user:', user.id);
+      // console.log('Login successful for user:', user.id);
 
       // Prepare user response without sensitive data
       const userResponse = {
@@ -104,7 +105,8 @@ class UserController extends BaseController {
       };
     } catch (error) {
       if (error instanceof AppError) throw error;
-      console.error('Login error:', error);
+      // console.error('Login error:', error);
+
       throw new AppError('Erro durante o login. Por favor, tente novamente.', 500);
     }
   }
@@ -149,7 +151,8 @@ class UserController extends BaseController {
       return userResponse;
     } catch (error) {
       if (error instanceof AppError) throw error;
-      console.error('Profile update error:', error);
+      // console.error('Profile update error:', error);
+
       throw new AppError('Erro ao atualizar perfil', 500);
     }
   }
@@ -161,7 +164,8 @@ class UserController extends BaseController {
       const stats = await User.getStats(userId);
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      // console.error('Error fetching user stats:', error);
+
       throw new AppError('Error fetching user stats', 500);
     }
   }
@@ -174,13 +178,13 @@ class UserController extends BaseController {
       const achievements = await Achievement.getRecent(userId, limit);
       res.json(achievements);
     } catch (error) {
-      console.error('Error fetching recent achievements:', error);
+      // console.error('Error fetching recent achievements:', error);
+
       throw new AppError('Error fetching recent achievements', 500);
     }
   }
 
   generateToken(user) {
-
     try {
       return jwt.sign(
         { 
@@ -191,7 +195,8 @@ class UserController extends BaseController {
         { expiresIn: '7d' }
       );
     } catch (error) {
-      console.error('Token generation error:', error);
+      // console.error('Token generation error:', error);
+
       throw new AppError('Erro ao gerar token de autenticação', 500);
     }
   }

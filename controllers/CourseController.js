@@ -63,6 +63,15 @@ class CourseController extends BaseController {
         userProgress.updated_at = new Date(); // Update the timestamp
         await userProgress.save();
         console.log(`Updated user progress: ${JSON.stringify(userProgress)}`);
+        const course = await Course.findByPk(courseId);
+        const totalLessons = await Lesson.count({ where: { course_id: courseId } });
+        const completedLessons = await UserProgress.count({ where: { user_id: userId, completed: true, course_id: courseId } });
+  
+        if (totalLessons === completedLessons) {
+          // Update course status to completed
+          course.completed = true; // Assuming there's a completed field in the Course model
+          await course.save();
+        }
       }
 
       return { message: 'Lesson marked as complete' };
