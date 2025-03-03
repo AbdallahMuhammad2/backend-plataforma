@@ -9,7 +9,7 @@ function authMiddleware(req, res, next) {
     
     if (!token) {
       console.log('Auth middleware: No token found. Returning 401 error.');
-      return res.status(401).json({ message: 'No authentication token provided' });
+      return res.redirect('/login');
     }
 
     console.log('Auth middleware: Verifying token...'); // Log token verification
