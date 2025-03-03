@@ -5,39 +5,34 @@ const { asyncHandler, AppError, sendResponse } = require('../middleware/errorHan
 
 // Input validation middleware
 const validateLoginInput = (req, res, next) => {
-  // Ensure email and password are provided
-
   const { email, password } = req.body;
-  
+
   if (!email || !password) {
     throw new AppError('Email e senha são obrigatórios', 400);
   }
-  
+
   if (typeof email !== 'string' || typeof password !== 'string') {
     throw new AppError('Formato de entrada inválido', 400);
   }
-  
+
   if (!email.includes('@')) {
     throw new AppError('Formato de email inválido', 400);
   }
-  
+
   next();
 };
 
 const validateRegisterInput = (req, res, next) => {
-  // Ensure name, email, and password are provided
-
   const { name, email, password } = req.body;
-  
-  if (!name || !email || !password || !req.body.role) {
 
+  if (!name || !email || !password) {
     throw new AppError('Nome, email e senha são obrigatórios', 400);
   }
-  
+
   if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
     throw new AppError('Formato de entrada inválido', 400);
   }
-  
+
   if (!email.includes('@')) {
     throw new AppError('Formato de email inválido', 400);
   }
@@ -45,23 +40,24 @@ const validateRegisterInput = (req, res, next) => {
   if (password.length < 6) {
     throw new AppError('A senha deve ter pelo menos 6 caracteres', 400);
   }
-  
+
   next();
 };
 
 // Registration route
 router.post('/register', validateRegisterInput, asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
-
-  
+  const { name, email, password } = req.body;
+  console.log('Registering user:', { name, email, password: '[REDACTED]' });
   try {
     const result = await UserController.register({
       name,
       email,
       password
     });
-    
-    res.status(201).json({
+
+    sendResponse(res, 201, { 
+        token: result.token, // Ensure token is included in the response
+
       status: 'success',
       data: {
         token: result.token,
@@ -77,9 +73,16 @@ router.post('/register', validateRegisterInput, asyncHandler(async (req, res) =>
     });
   } catch (error) {
     if (error.message === 'Email already registered') {
-      throw new AppError('Este email já está registrado', 400);
+      sendResponse(res, 400, {
+        status: 'fail',
+        message: 'Este email já está registrado'
+      });
+    } else {
+      sendResponse(res, 500, {
+        status: 'error',
+        message: 'Erro ao registrar usuário'
+      });
     }
-    throw error;
   }
 }));
 
@@ -88,7 +91,9 @@ router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
 
   try {
     const result = await UserController.login(email, password);
-    res.status(200).json({
+    res.status(200).json({ 
+        token: result.token, // Ensure token is included in the response
+
       status: 'success',
       data: {
         token: result.token,

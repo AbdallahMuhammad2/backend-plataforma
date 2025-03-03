@@ -3,18 +3,17 @@ const UserController = require('../controllers/UserController');
 function authMiddleware(req, res, next) {
   try {
     console.log('Auth middleware: Checking for token...'); // Log token check
-    console.log('Auth middleware: Verifying token...'); // Log token verification
 
     const token = req.header('Authorization')?.replace('Bearer ', '');
+    console.log('Auth middleware: Token found:', token); // Log the extracted token
     
     if (!token) {
       console.log('Auth middleware: No token found. Returning 401 error.');
       return res.status(401).json({ message: 'No authentication token provided' });
     }
 
-    console.log('Auth middleware: Verifying token...');
+    console.log('Auth middleware: Verifying token...'); // Log token verification
     const decoded = UserController.verifyToken(token);
-    console.log (token);
     console.log('Auth middleware: Token verified. Adding user data to request...', decoded); // Log user data addition
 
     req.user = decoded;
