@@ -52,7 +52,6 @@ class UserController extends BaseController {
 
       console.log('Token generated:', token); // Log the generated token
       return {
-
         user: userResponse,
         token 
       };
@@ -62,6 +61,45 @@ class UserController extends BaseController {
       console.error('Error details:', error.message); // Additional logging for error details
 
       throw new AppError('Erro ao registrar usuário. Por favor, tente novamente.', 500);
+    }
+  }
+
+  async login(email, password) {
+    try {
+      const user = await User.findOne({ where: { email } });
+
+      if (!user) {
+        throw new AppError('Email ou senha inválidos', 401);
+      }
+
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+      if (!isMatch) {
+        throw new AppError('Email ou senha inválidos', 401);
+      }
+
+      // Remove sensitive data before sending response
+      const userResponse = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio
+      };
+
+      // Generate token
+      const token = this.generateToken(userResponse);
+
+      return {
+        user: userResponse,
+        token
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      console.error('Login error:', error); // Log the error details
+      console.error('Error details:', error.message); // Additional logging for error details
+
+      throw new AppError('Erro ao fazer login. Por favor, tente novamente.', 500);
     }
   }
 
