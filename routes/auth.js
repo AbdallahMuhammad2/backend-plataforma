@@ -56,8 +56,6 @@ router.post('/register', validateRegisterInput, asyncHandler(async (req, res) =>
     });
 
     sendResponse(res, 201, { 
-        token: result.token, // Ensure token is included in the response
-
       status: 'success',
       data: {
         token: result.token,
@@ -72,28 +70,32 @@ router.post('/register', validateRegisterInput, asyncHandler(async (req, res) =>
       message: 'Usuário registrado com sucesso'
     });
   } catch (error) {
+    console.error('Error during registration:', error.message); // Log the error for debugging
+    
+    // Handle specific known errors
     if (error.message === 'Email already registered') {
-      sendResponse(res, 400, {
+      return sendResponse(res, 400, {
         status: 'fail',
         message: 'Este email já está registrado'
       });
     } else {
-      sendResponse(res, 500, {
+      // Generic error without exposing details to client
+      return sendResponse(res, 500, {
         status: 'error',
-        message: 'Erro ao registrar usuário'
+        message: 'Erro ao registrar usuário. Por favor, tente novamente mais tarde.'
       });
     }
   }
 }));
 
+// Login route
 router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const result = await UserController.login(email, password);
-    res.status(200).json({ 
-        token: result.token, // Ensure token is included in the response
-
+    
+    return sendResponse(res, 200, {
       status: 'success',
       data: {
         token: result.token,
@@ -102,11 +104,21 @@ router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
       message: 'Login realizado com sucesso'
     });
   } catch (error) {
-    console.error('Error during login:', error);  // Log detalhado do erro
-    if (error.message === 'Invalid email or password') {
-      throw new AppError('Email ou senha inválidos', 401);
+    console.error('Error during login:', error); // Log for debugging
+    
+    // Handle specific errors with appropriate status codes
+    if (error.message === 'Email ou senha inválidos') {
+      return sendResponse(res, 401, {
+        status: 'fail',
+        message: 'Email ou senha inválidos'
+      });
+    } else {
+      // Generic error without exposing details to client
+      return sendResponse(res, 500, {
+        status: 'error',
+        message: 'Erro ao fazer login. Por favor, tente novamente mais tarde.'
+      });
     }
-    throw error;
   }
 }));
 
