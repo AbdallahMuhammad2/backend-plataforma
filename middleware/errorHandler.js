@@ -1,3 +1,21 @@
+const express = require('express');
+const errorHandler = require('./middleware/errorHandler');
+const app = express();
+
+// Configurações e rotas
+// ...
+
+// Middleware para capturar rotas inexistentes
+app.use((req, res, next) => {
+  res.status(404).json({ 
+    status: 'error',
+    message: 'Endpoint não encontrado' 
+  });
+});
+
+// Middleware global de tratamento de erros (DEVE ser o último middleware)
+app.use(errorHandler);
+
 class AppError extends Error {
   constructor(message, statusCode = 500, errors = []) {
     super(message);
@@ -8,35 +26,25 @@ class AppError extends Error {
   }
 }
 
+// Middleware para tratamento de erros global
 const errorHandler = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-
-  if (process.env.NODE_ENV === 'development') {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-      errors: err.errors,
-      stack: err.stack,
-    });
-  } else {
-    // Production error response
-    if (err.isOperational) {
-      // Known operational errors
-      res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message,
-        errors: err.errors,
-      });
-    } else {
-      // Programming or unknown errors
-      console.error('ERROR 💥', err);
-      res.status(500).json({
-        status: 'error',
-        message: 'Something went wrong',
-      });
-    }
+  console.error('Global error handler caught:', err);
+  
+  // Se já enviamos uma resposta, apenas passe para o próximo middleware
+  if (res.headersSent) {
+    return next(err);
   }
+
+  // Determina o status do erro (padrão: 500)
+  const statusCode = err.statusCode || 500;
+  
+  // Retorna sempre resposta JSON
+  res.status(statusCode).json({
+    status: 'error',
+    message: err.message || 'Ocorreu um erro no servidor.',
+    // Adicione stack trace apenas em ambiente de desenvolvimento
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 };
 
 const asyncHandler = (fn) => (req, res, next) =>
