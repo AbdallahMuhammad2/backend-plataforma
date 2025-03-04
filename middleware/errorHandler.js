@@ -1,5 +1,5 @@
 const express = require('express');
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/errorHandler'); // ⚠️ Erro circular!
 const app = express();
 
 // Configurações e rotas
