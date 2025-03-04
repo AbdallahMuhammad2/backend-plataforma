@@ -49,16 +49,16 @@ app.use('/api/submissions', submissionRoutes);
 // Handle favicon requests
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
+// Middleware para capturar rotas inexistentes
 app.use((req, res, next) => {
-  const error = new Error('Not Found');
-  error.status = 404;
-  next(error);
+  res.status(404).json({ 
+    status: 'error',
+    message: 'Endpoint não encontrado' 
+  });
 });
 
-app.use((err, req, res, next) => {
-  console.error('Error:', err);  // Log detalhado do erro
-  res.status(err.status || 500).json({ message: err.message });
-});
+// Middleware global de tratamento de erros (DEVE ser o último middleware)
+app.use(errorHandler);
 
 // Database connection setup
 const { Sequelize } = require('sequelize');
@@ -84,37 +84,9 @@ sequelize.authenticate()
   });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`
-    🚀 Server is running on port ${PORT}
-    
-    Available endpoints:
-    - Auth:
-      POST /api/auth/register
-      POST /api/auth/login
-    
-    - Users:
-      GET  /api/users/profile
-      PUT  /api/users/profile
-      GET  /api/users/progress
-      GET  /api/users/achievements
-    
-    - Courses:
-      GET  /api/courses
-      GET  /api/courses/:id
-      GET  /api/courses/:id/modules
-      GET  /api/courses/modules/:moduleId/lessons
-      POST /api/courses/lessons/:lessonId/complete
-    
-    - Writing Submissions:
-      POST /api/submissions
-      GET  /api/submissions
-      GET  /api/submissions/:id
-      POST /api/submissions/:id/review
-    
-    Environment: production
-  `);
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Handle uncaught exceptions
