@@ -29,7 +29,7 @@ class AppError extends Error {
 }
 
 // Middleware para tratamento de erros global
-const errorHandler = (err, req, res, next) => {
+const globalErrorHandler = (err, req, res, next) => {
   console.error('Global error handler caught:', err);
   
   // Se já enviamos uma resposta, apenas passe para o próximo middleware
@@ -113,7 +113,7 @@ const sendError = (res, statusCode = 500, message = 'Something went wrong', erro
 
 module.exports = {
   AppError,
-  errorHandler,
+  errorHandler: globalErrorHandler, // Renomeado para evitar conflito
   asyncHandler,
   handleDatabaseError,
   handleValidationError,
