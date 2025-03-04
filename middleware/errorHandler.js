@@ -16,12 +16,14 @@ app.use((req, res, next) => {
 // Middleware global de tratamento de erros (DEVE ser o último middleware)
 app.use(errorHandler);
 
+// Define a classe AppError para uso em toda a aplicação
 class AppError extends Error {
   constructor(message, statusCode = 500, errors = []) {
     super(message);
     this.statusCode = statusCode;
     this.errors = errors;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.status = statusCode >= 400 && statusCode < 500 ? 'fail' : 'error';
+    
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -47,8 +49,12 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+// Middleware para capturar erros em callbacks assíncronos
+const asyncHandler = (fn) => {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
 
 // Database error handler
 const handleDatabaseError = (error) => {
@@ -80,20 +86,21 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError('Your token has expired. Please log in again.', 401);
 
-// Response utility functions
-const sendResponse = (res, statusCode, data, message = '') => {
-  const status = `${statusCode}`.startsWith('4') ? 'fail' : 'success';
-  
+// Função auxiliar para enviar respostas formatadas
+const sendResponse = (res, statusCode, data, message = null) => {
   const response = {
-    status,
-    data,
+    status: statusCode >= 200 && statusCode < 400 ? 'success' : 'error'
   };
+
+  if (data) {
+    response.data = data;
+  }
 
   if (message) {
     response.message = message;
   }
 
-  res.status(statusCode).json(response);
+  return res.status(statusCode).json(response);
 };
 
 const sendError = (res, statusCode = 500, message = 'Something went wrong', errors = []) => {
