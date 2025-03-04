@@ -96,13 +96,9 @@ router.post('/login', validateLoginInput, asyncHandler(async (req, res) => {
     const result = await UserController.login(email, password);
     
     return sendResponse(res, 200, {
-      status: 'success',
-      data: {
-        token: result.token,
-        user: result.user
-      },
-      message: 'Login realizado com sucesso'
-    });
+      token: result.token,  // Token no nível principal dos dados
+      user: result.user     // Usuário no nível principal dos dados
+    }, 'Login realizado com sucesso');
   } catch (error) {
     console.error('Error during login:', error); // Log for debugging
     

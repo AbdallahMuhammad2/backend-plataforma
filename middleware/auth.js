@@ -9,7 +9,10 @@ function authMiddleware(req, res, next) {
     
     if (!token) {
       console.log('Auth middleware: No token found. Returning 401 error.');
-      return res.redirect('/login');
+      return res.status(401).json({ 
+        status: 'fail',
+        message: 'Authentication required' 
+      });
     }
 
     console.log('Auth middleware: Verifying token...'); // Log token verification
@@ -20,7 +23,10 @@ function authMiddleware(req, res, next) {
     next();
   } catch (error) {
     console.error('Auth middleware: Error verifying token:', error);
-    res.status(401).json({ message: 'Invalid authentication token' });
+    res.status(401).json({ 
+      status: 'fail',
+      message: 'Invalid authentication token' 
+    });
   }
 }
 
